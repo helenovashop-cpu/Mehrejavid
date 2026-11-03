@@ -24,8 +24,8 @@ Small charities in Iran rarely have affordable software for case management and 
 ## Setup
 
 1. Upload the files to a PHP-enabled host.
-2. Copy `config.example.php` to `config.php` and fill in your settings (SMS key, admin credentials).
-3. Open the site and log in as admin.
+2. Copy `config.example.php` to `config.php` and fill in your settings (SMS key, optional payment merchant ID).
+3. Open the site. On first run an admin account is created: username `admin`, with the password from `config.php` or an auto-generated one saved in `data/INITIAL_ADMIN_PASSWORD.txt`. You must change it at first login; then delete that file.
 
 > No real beneficiary or donor data is included in this repository.
 
