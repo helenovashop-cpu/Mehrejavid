@@ -7,6 +7,7 @@
 - [ ] Online payment gateway rollout (ZarinPal)
 - [ ] Automated tests for `api.php`
 - [ ] Split frontend/backend into smaller modules
-- [ ] English and Arabic documentation
+- [x] English documentation (`docs/en`)
+- [ ] Arabic documentation
 - [ ] Demo instance with fake data
 - [ ] Multi-charity setup guide
