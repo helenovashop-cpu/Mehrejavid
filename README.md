@@ -8,6 +8,14 @@ Built for [موسسه خیریه درمانی مهر جاوید](https://mehreja
 
 Small charities in Iran rarely have affordable software for case management and transparent accounting, and almost nothing exists as open source with proper Persian/RTL support. This project aims to fill that gap.
 
+## Screenshots
+
+Persian RTL, responsive, with light/dark themes.
+
+| Desktop | Mobile | Dark |
+|---|---|---|
+| ![Desktop](docs/screenshots/login-desktop.png) | ![Mobile](docs/screenshots/login-mobile.png) | ![Dark](docs/screenshots/login-dark.png) |
+
 ## Features
 
 - Beneficiary (مددجو) case registration and follow-up
