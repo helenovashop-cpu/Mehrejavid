@@ -29,10 +29,14 @@ Small charities in Iran rarely have affordable software for case management and 
 
 > No real beneficiary or donor data is included in this repository.
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md).
+
 ## Status
 
 Actively maintained. Roadmap: better financial reports, tests, English docs, easier multi-charity setup.
 
 ## License
 
-MIT (change if needed)
+MIT — see [LICENSE](LICENSE).
