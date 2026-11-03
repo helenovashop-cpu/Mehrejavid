@@ -29,6 +29,10 @@ Small charities in Iran rarely have affordable software for case management and 
 
 > No real beneficiary or donor data is included in this repository.
 
+## Roadmap
+
+See [ROADMAP.md](ROADMAP.md) and [CHANGELOG.md](CHANGELOG.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues: see [SECURITY.md](SECURITY.md).
