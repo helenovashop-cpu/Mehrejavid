@@ -39,6 +39,14 @@ Persian RTL, responsive, with light/dark themes.
 
 > No real beneficiary or donor data is included in this repository.
 
+## Tests
+
+```
+php tests/smoke_test.php
+```
+
+Runs `api.php` on a temporary PHP server with a throw-away database and checks CSRF, authorization and login rate-limiting. Requires PHP with `curl` and `pdo_sqlite`.
+
 ## Roadmap
 
 See [ROADMAP.md](ROADMAP.md) and [CHANGELOG.md](CHANGELOG.md).

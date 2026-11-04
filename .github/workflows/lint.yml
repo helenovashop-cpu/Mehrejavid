@@ -8,6 +8,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
+          extensions: curl, pdo_sqlite
       - name: PHP syntax check
         run: |
           php -l api.php
@@ -15,3 +16,5 @@ jobs:
       - name: Check no secrets committed
         run: |
           ! grep -rEn "(api[_-]?key|secret|password)['\"]?\s*[:=]\s*['\"][A-Za-z0-9]{16,}" --include=*.php --include=*.html . || (echo "Possible secret found" && exit 1)
+      - name: API smoke tests
+        run: php tests/smoke_test.php

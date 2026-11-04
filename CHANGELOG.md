@@ -6,6 +6,7 @@
 - Added CI lint workflow and issue/PR templates
 - Added roadmap
 - Added English documentation (`docs/en/README.md`)
+- Added automated API smoke tests (`php tests/smoke_test.php`) covering CSRF, role checks, admin login and login rate-limiting; run in CI
 
 ## 0.1.0
 - Initial public release
