@@ -7,6 +7,8 @@
 - Added roadmap
 - Added English documentation (`docs/en/README.md`)
 - Added automated API smoke tests (`php tests/smoke_test.php`) covering CSRF, role checks, admin login and login rate-limiting; run in CI
+- Fixed: `accounting_category_create`, `accounting_bank_account_create` and `donor_create` returned the audit-log row id instead of the new record's id
+- Tests: accounting flow (categories, accounts, transactions, summary/balances) and admin password change
 
 ## 0.1.0
 - Initial public release

@@ -78,6 +78,59 @@ check('session is now admin', ($r['role'] ?? '') === 'admin');
 [$c, $r] = call('submission_list_all');
 check('submission_list_all works for admin', $c === 200 && is_array($r['items'] ?? null));
 
+// --- Accounting flow (super_admin): categories, accounts, transactions, summary ---
+[$c, $r] = call('accounting_category_create', ['type' => 'income', 'name' => 'Test donations']);
+check('accounting_category_create without CSRF is refused (403)', $c === 403);
+
+[$c, $r] = call('accounting_category_create', ['csrf' => $csrf, 'type' => 'bogus', 'name' => 'X']);
+check('accounting_category_create rejects an invalid type', !($r['ok'] ?? true));
+
+[$c, $r] = call('accounting_category_create', ['csrf' => $csrf, 'type' => 'income', 'name' => 'Test donations']);
+check('accounting_category_create (income) succeeds', ($r['ok'] ?? false) && ($r['id'] ?? 0) > 0);
+$incomeCat = (int) ($r['id'] ?? 0);
+[$c, $r2] = call('accounting_category_list');
+$found = false;
+foreach (($r2['items'] ?? []) as $it) { if ((int) $it['id'] === $incomeCat && $it['name'] === 'Test donations') $found = true; }
+check('create endpoints return the new record id (not the audit-log id)', $found);
+
+[$c, $r] = call('accounting_category_create', ['csrf' => $csrf, 'type' => 'expense', 'name' => 'Test costs']);
+$expenseCat = (int) ($r['id'] ?? 0);
+
+[$c, $r] = call('accounting_bank_account_create', ['csrf' => $csrf, 'name' => 'Test cash box', 'openingBalance' => 1000]);
+check('accounting_bank_account_create succeeds', ($r['ok'] ?? false) && ($r['id'] ?? 0) > 0);
+$bank = (int) ($r['id'] ?? 0);
+
+$tx = ['csrf' => $csrf, 'bankAccountId' => $bank, 'transactionDate' => '2026-01-15', 'paymentMethod' => 'cash'];
+[$c, $r] = call('accounting_transaction_create', $tx + ['type' => 'income', 'categoryId' => $incomeCat, 'amount' => 5000]);
+check('income transaction is recorded', ($r['ok'] ?? false) && ($r['id'] ?? 0) > 0);
+
+[$c, $r] = call('accounting_transaction_create', $tx + ['type' => 'expense', 'categoryId' => $expenseCat, 'amount' => 1200]);
+check('expense transaction is recorded', ($r['ok'] ?? false));
+
+[$c, $r] = call('accounting_transaction_create', $tx + ['type' => 'expense', 'categoryId' => $incomeCat, 'amount' => 100]);
+check('transaction with mismatched category type is rejected', !($r['ok'] ?? true));
+
+[$c, $r] = call('accounting_transaction_create', $tx + ['type' => 'income', 'categoryId' => $incomeCat, 'amount' => -5]);
+check('transaction with non-positive amount is rejected', !($r['ok'] ?? true));
+
+[$c, $r] = call('accounting_transaction_create', ['transactionDate' => '15/01/2026'] + $tx + ['type' => 'income', 'categoryId' => $incomeCat, 'amount' => 10]);
+check('transaction with malformed date is rejected', !($r['ok'] ?? true));
+
+[$c, $r] = call('accounting_summary');
+check('accounting_summary totals match recorded transactions',
+  ($r['ok'] ?? false) && ($r['totalIncome'] ?? -1) === 5000 && ($r['totalExpense'] ?? -1) === 1200 && ($r['netBalance'] ?? 0) === 3800);
+$balance = null;
+foreach (($r['byAccount'] ?? []) as $a) { if ((int) $a['id'] === $bank) $balance = (int) $a['balance']; }
+check('account balance = opening balance + income - expense', $balance === 1000 + 5000 - 1200);
+
+// Password change: wrong current password is refused, correct one works.
+[$c, $r] = call('admin_change_password', ['csrf' => $csrf, 'current' => 'not-the-password', 'next' => 'N3w-passw0rd!']);
+check('admin_change_password rejects a wrong current password', !($r['ok'] ?? true));
+[$c, $r] = call('admin_change_password', ['csrf' => $csrf, 'current' => $adminPass, 'next' => '123']);
+check('admin_change_password rejects a too-short new password', !($r['ok'] ?? true));
+[$c, $r] = call('admin_change_password', ['csrf' => $csrf, 'current' => $adminPass, 'next' => 'N3w-passw0rd!']);
+check('admin_change_password succeeds with valid input', ($r['ok'] ?? false));
+
 [$c, $r] = call('admin_logout', ['csrf' => $csrf]);
 [$c, $r] = call('bootstrap');
 check('logout returns to guest', ($r['role'] ?? '') === 'guest');

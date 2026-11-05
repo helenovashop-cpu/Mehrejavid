@@ -2544,8 +2544,9 @@ switch ($action) {
     if (!$name) fail('لطفاً نام حساب/صندوق را وارد کنید.');
     $pdo->prepare('INSERT INTO accounting_bank_accounts (name, opening_balance, created_at) VALUES (?,?,?)')
       ->execute([$name, $openingBalance, gmdate('c')]);
-    logAudit($pdo, $adminUser, 'accounting_bank_account_create', null, $name);
-    ok(['id' => (int) $pdo->lastInsertId()]);
+    $newId = (int) $pdo->lastInsertId(); // read before logAudit(), which inserts its own row
+    logAudit($pdo, $adminUser, 'accounting_bank_account_create', (string) $newId, $name);
+    ok(['id' => $newId]);
   }
 
   case 'accounting_bank_account_update': {
@@ -2585,8 +2586,9 @@ switch ($action) {
     if (!$name) fail('لطفاً نام دسته‌بندی را وارد کنید.');
     $pdo->prepare('INSERT INTO accounting_categories (type, name, created_at) VALUES (?,?,?)')
       ->execute([$type, $name, gmdate('c')]);
-    logAudit($pdo, $adminUser, 'accounting_category_create', null, "$type: $name");
-    ok(['id' => (int) $pdo->lastInsertId()]);
+    $newId = (int) $pdo->lastInsertId(); // read before logAudit(), which inserts its own row
+    logAudit($pdo, $adminUser, 'accounting_category_create', (string) $newId, "$type: $name");
+    ok(['id' => $newId]);
   }
 
   case 'accounting_category_update': {
@@ -3101,8 +3103,9 @@ switch ($action) {
     if (!in_array($donorType, ['individual', 'company'], true)) $donorType = 'individual';
     $pdo->prepare('INSERT INTO donors (name, phone, email, national_id, donor_type, notes, created_at) VALUES (?,?,?,?,?,?,?)')
       ->execute([$name, $phone ?: null, $email ?: null, $nationalId ?: null, $donorType, $notes ?: null, gmdate('c')]);
-    logAudit($pdo, $adminUser, 'donor_create', (string) $pdo->lastInsertId(), $name);
-    ok(['id' => (int) $pdo->lastInsertId()]);
+    $newId = (int) $pdo->lastInsertId(); // read before logAudit(), which inserts its own row
+    logAudit($pdo, $adminUser, 'donor_create', (string) $newId, $name);
+    ok(['id' => $newId]);
   }
 
   // -- edit an existing donor's profile (name/phone/email/notes). Lets admins
