@@ -123,6 +123,36 @@ $balance = null;
 foreach (($r['byAccount'] ?? []) as $a) { if ((int) $a['id'] === $bank) $balance = (int) $a['balance']; }
 check('account balance = opening balance + income - expense', $balance === 1000 + 5000 - 1200);
 
+// Donors: create / validate / update / attach donations / merge duplicates.
+[$c, $r] = call('donor_create', ['csrf' => $csrf, 'name' => 'Test donor A', 'phone' => '09121234567']);
+check('donor_create succeeds and returns the new donor id', ($r['ok'] ?? false) && ($r['id'] ?? 0) > 0);
+$donorA = (int) ($r['id'] ?? 0);
+[$c, $r] = call('donor_create', ['csrf' => $csrf, 'name' => 'Test donor A (duplicate)']);
+$donorB = (int) ($r['id'] ?? 0);
+[$c, $r] = call('donor_create', ['csrf' => $csrf, 'name' => '']);
+check('donor_create rejects an empty name', !($r['ok'] ?? true));
+[$c, $r] = call('donor_create', ['csrf' => $csrf, 'name' => 'Bad phone', 'phone' => '12345']);
+check('donor_create rejects a malformed phone number', !($r['ok'] ?? true));
+[$c, $r] = call('donor_update', ['csrf' => $csrf, 'id' => 999999, 'name' => 'Ghost']);
+check('donor_update on a missing donor returns 404', $c === 404);
+[$c, $r] = call('donor_update', ['csrf' => $csrf, 'id' => $donorA, 'name' => 'Test donor A2', 'phone' => '09120000000']);
+check('donor_update succeeds', ($r['ok'] ?? false));
+[$c, $r] = call('donor_detail', ['id' => $donorA]);
+check('donor_detail reflects the update', ($r['donor']['name'] ?? '') === 'Test donor A2' && ($r['donor']['phone'] ?? '') === '09120000000');
+
+[$c, $r] = call('accounting_transaction_create', $tx + ['type' => 'income', 'categoryId' => $incomeCat, 'amount' => 300, 'donorName' => 'Test donor A (duplicate)']);
+$donationOk = ($r['ok'] ?? false);
+[$c, $r] = call('donor_merge', ['csrf' => $csrf, 'keepId' => $donorA, 'mergeId' => $donorA]);
+check('donor_merge refuses to merge a donor with itself', !($r['ok'] ?? true));
+[$c, $r] = call('donor_merge', ['csrf' => $csrf, 'keepId' => $donorA, 'mergeId' => $donorB]);
+check('donor_merge succeeds', ($r['ok'] ?? false));
+[$c, $r] = call('donor_detail', ['id' => $donorB]);
+check('merged-away donor no longer exists (404)', $c === 404);
+if ($donationOk) {
+  [$c, $r] = call('donor_detail', ['id' => $donorA]);
+  check('donations of the merged donor move to the keeper', count($r['transactions'] ?? []) === 1);
+}
+
 // Password change: wrong current password is refused, correct one works.
 [$c, $r] = call('admin_change_password', ['csrf' => $csrf, 'current' => 'not-the-password', 'next' => 'N3w-passw0rd!']);
 check('admin_change_password rejects a wrong current password', !($r['ok'] ?? true));

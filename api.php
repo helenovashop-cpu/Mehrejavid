@@ -3100,6 +3100,7 @@ switch ($action) {
     $donorType = (string) ($_POST['donorType'] ?? 'individual');
     $notes = str_field('notes', 500);
     if (!$name) fail('لطفاً نام خیر را وارد کنید.');
+    if ($phone && !preg_match('/^0\d{10}$/', $phone)) fail('شماره موبایل نامعتبر است (مثال: 09121234567).');
     if (!in_array($donorType, ['individual', 'company'], true)) $donorType = 'individual';
     $pdo->prepare('INSERT INTO donors (name, phone, email, national_id, donor_type, notes, created_at) VALUES (?,?,?,?,?,?,?)')
       ->execute([$name, $phone ?: null, $email ?: null, $nationalId ?: null, $donorType, $notes ?: null, gmdate('c')]);
