@@ -123,6 +123,35 @@ $balance = null;
 foreach (($r['byAccount'] ?? []) as $a) { if ((int) $a['id'] === $bank) $balance = (int) $a['balance']; }
 check('account balance = opening balance + income - expense', $balance === 1000 + 5000 - 1200);
 
+// Internal transfers: move money between two accounts without touching income/expense totals.
+$balanceOf = function (array $summary, int $accountId): ?int {
+  foreach (($summary['byAccount'] ?? []) as $a) { if ((int) $a['id'] === $accountId) return (int) $a['balance']; }
+  return null;
+};
+[$c, $r] = call('accounting_bank_account_create', ['csrf' => $csrf, 'name' => 'Test bank', 'openingBalance' => 0]);
+$bank2 = (int) ($r['id'] ?? 0);
+$tr = ['csrf' => $csrf, 'fromAccountId' => $bank, 'toAccountId' => $bank2, 'transactionDate' => '2026-01-16'];
+[$c, $r] = call('accounting_transfer_create', $tr + ['amount' => 500]);
+check('accounting_transfer_create succeeds', ($r['ok'] ?? false) && ($r['id'] ?? 0) > 0);
+$legId = (int) ($r['id'] ?? 0);
+[$c, $r] = call('accounting_transfer_create', ['toAccountId' => $bank] + $tr + ['fromAccountId' => $bank, 'amount' => 500]);
+check('transfer to the same account is rejected', !($r['ok'] ?? true));
+[$c, $r] = call('accounting_transfer_create', $tr + ['amount' => 0]);
+check('transfer with non-positive amount is rejected', !($r['ok'] ?? true));
+[$c, $r] = call('accounting_transfer_create', ['toAccountId' => 999999] + $tr + ['amount' => 5]);
+check('transfer to an unknown account is rejected', !($r['ok'] ?? true));
+
+[$c, $r] = call('accounting_summary');
+check('transfers do not change income/expense totals', ($r['totalIncome'] ?? -1) === 5000 && ($r['totalExpense'] ?? -1) === 1200);
+check('transfer moves the balance between the two accounts',
+  $balanceOf($r, $bank) === 1000 + 5000 - 1200 - 500 && $balanceOf($r, $bank2) === 500);
+
+[$c, $r] = call('accounting_transaction_delete', ['csrf' => $csrf, 'id' => $legId]);
+check('deleting one transfer leg succeeds', ($r['ok'] ?? false));
+[$c, $r] = call('accounting_summary');
+check('deleting one leg removes the paired leg too (balances restored)',
+  $balanceOf($r, $bank) === 1000 + 5000 - 1200 && $balanceOf($r, $bank2) === 0);
+
 // Donors: create / validate / update / attach donations / merge duplicates.
 [$c, $r] = call('donor_create', ['csrf' => $csrf, 'name' => 'Test donor A', 'phone' => '09121234567']);
 check('donor_create succeeds and returns the new donor id', ($r['ok'] ?? false) && ($r['id'] ?? 0) > 0);

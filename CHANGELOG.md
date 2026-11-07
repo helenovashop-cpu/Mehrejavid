@@ -11,6 +11,7 @@
 - Tests: accounting flow (categories, accounts, transactions, summary/balances) and admin password change
 - Tests: donor create/update/detail/merge (donations move to the kept donor)
 - Hardening: `donor_create` now validates the phone number format like `donor_update` does
+- Tests: internal account transfers (balances move, income/expense totals unchanged, deleting one leg removes both)
 
 ## 0.1.0
 - Initial public release
