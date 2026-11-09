@@ -182,6 +182,47 @@ if ($donationOk) {
   check('donations of the merged donor move to the keeper', count($r['transactions'] ?? []) === 1);
 }
 
+// --- Transaction list/update/delete, budgets, audit log and backup ---
+[$c, $r] = call('accounting_transaction_list', ['type' => 'income']);
+$incomeTxId = 0; $onlyIncome = ($r['ok'] ?? false) && count($r['items'] ?? []) >= 1;
+foreach (($r['items'] ?? []) as $it) { if ($it['type'] !== 'income') $onlyIncome = false; $incomeTxId = (int) $it['id']; }
+check('accounting_transaction_list filters by type', $onlyIncome);
+[$c, $r] = call('accounting_transaction_list', ['minAmount' => 4000]);
+check('accounting_transaction_list filters by minimum amount', ($r['ok'] ?? false) && count($r['items'] ?? []) === 1);
+
+[$c, $r] = call('accounting_transaction_update', ['csrf' => $csrf, 'id' => $incomeTxId, 'categoryId' => $incomeCat, 'bankAccountId' => $bank, 'amount' => 0, 'transactionDate' => '2026-01-15']);
+check('accounting_transaction_update rejects a non-positive amount', !($r['ok'] ?? true));
+[$c, $r] = call('accounting_transaction_update', ['csrf' => $csrf, 'id' => $incomeTxId, 'categoryId' => $incomeCat, 'bankAccountId' => $bank, 'amount' => 6000, 'transactionDate' => '2026-01-15', 'paymentMethod' => 'cash']);
+check('accounting_transaction_update changes the amount', ($r['ok'] ?? false));
+[$c, $r] = call('accounting_summary');
+check('summary reflects the edited transaction', ($r['totalIncome'] ?? -1) === 6300);
+
+[$c, $r] = call('budget_set', ['csrf' => $csrf, 'categoryId' => $expenseCat, 'periodType' => 'monthly', 'periodValue' => '2026-01', 'amount' => 2000]);
+check('budget_set stores a monthly budget', ($r['ok'] ?? false));
+[$c, $r] = call('budget_set', ['csrf' => $csrf, 'categoryId' => $expenseCat, 'periodType' => 'weekly', 'periodValue' => '2026-01', 'amount' => 1]);
+check('budget_set rejects an invalid period type', !($r['ok'] ?? true));
+[$c, $r] = call('budget_vs_actual', ['periodType' => 'monthly', 'periodValue' => '2026-01']);
+$row = null; foreach (($r['items'] ?? []) as $it) { if ((int) $it['category_id'] === $expenseCat) $row = $it; }
+check('budget_vs_actual compares budget (2000) with actual spend (1200)', $row !== null && (int) $row['budget_amount'] === 2000 && (int) $row['actual_amount'] === 1200);
+
+[$c, $r] = call('audit_log_list');
+$actions = array_column($r['items'] ?? [], 'action');
+check('audit log records admin actions', in_array('budget_set', $actions, true) && in_array('accounting_transaction_update', $actions, true));
+
+[$c, $r] = call('accounting_transaction_delete', ['id' => $incomeTxId]);
+check('accounting_transaction_delete without CSRF is refused (403)', $c === 403);
+[$c, $r] = call('accounting_transaction_delete', ['csrf' => $csrf, 'id' => $incomeTxId]);
+check('accounting_transaction_delete removes the transaction', ($r['ok'] ?? false));
+[$c, $r] = call('accounting_transaction_delete', ['csrf' => $csrf, 'id' => $incomeTxId]);
+check('deleting a missing transaction returns 404', $c === 404);
+[$c, $r] = call('accounting_summary');
+check('summary reflects the deletion', ($r['totalIncome'] ?? -1) === 300);
+
+$ch = curl_init("http://127.0.0.1:$port/api.php");
+curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIEFILE => $cookie, CURLOPT_POST => true, CURLOPT_POSTFIELDS => 'action=backup_download']);
+$bk = (string) curl_exec($ch); curl_close($ch);
+check('backup_download returns a SQLite database for admins', str_starts_with($bk, 'SQLite format 3'));
+
 // Password change: wrong current password is refused, correct one works.
 [$c, $r] = call('admin_change_password', ['csrf' => $csrf, 'current' => 'not-the-password', 'next' => 'N3w-passw0rd!']);
 check('admin_change_password rejects a wrong current password', !($r['ok'] ?? true));
