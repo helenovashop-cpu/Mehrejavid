@@ -223,6 +223,56 @@ curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_COOKIEFILE => $c
 $bk = (string) curl_exec($ch); curl_close($ch);
 check('backup_download returns a SQLite database for admins', str_starts_with($bk, 'SQLite format 3'));
 
+// Case (submission) lifecycle: manual creation, search, status changes, priority, timeline, deletion.
+// Uses a synthetic national ID generated with the official checksum — no real personal data.
+$mkNid = function (string $base9): string {
+  $sum = 0;
+  for ($i = 0; $i < 9; $i++) $sum += ((int) $base9[$i]) * (10 - $i);
+  $rem = $sum % 11;
+  return $base9 . ($rem < 2 ? $rem : 11 - $rem);
+};
+$caseNid = $mkNid('123456789');
+$caseData = ['name' => 'Test Beneficiary', 'fatherName' => 'Test Father', 'nationalId' => $caseNid, 'phone' => '09120000000',
+  'city' => 'Testville', 'specialty' => 'cardiology', 'problemDescription' => 'synthetic test case'];
+
+[$c, $r] = call('admin_create_submission', $caseData);
+check('admin_create_submission without CSRF is refused (403)', $c === 403);
+[$c, $r] = call('admin_create_submission', ['csrf' => $csrf, 'nationalId' => '1234567890'] + $caseData);
+check('admin_create_submission rejects an invalid national ID', !($r['ok'] ?? true));
+[$c, $r] = call('admin_create_submission', ['csrf' => $csrf] + $caseData);
+$caseId = $r['id'] ?? '';
+check('admin_create_submission creates a case', ($r['ok'] ?? false) && str_starts_with($caseId, "submission:$caseNid:"));
+
+[$c, $r] = call('submission_search', ['q' => 'Test Benef']);
+check('submission_search finds the case by name', ($r['items'][0]['id'] ?? '') === $caseId);
+[$c, $r] = call('submission_search', ['q' => 'x']);
+check('submission_search ignores queries shorter than 2 chars', ($r['items'] ?? null) === []);
+
+[$c, $r] = call('submission_set_status', ['csrf' => $csrf, 'id' => $caseId, 'status' => 'bogus']);
+check('submission_set_status rejects an unknown status', !($r['ok'] ?? true));
+[$c, $r] = call('submission_set_status', ['csrf' => $csrf, 'id' => $caseId, 'status' => 'rejected']);
+check('rejected status requires an explanatory note', !($r['ok'] ?? true));
+[$c, $r] = call('submission_set_status', ['csrf' => $csrf, 'id' => $caseId, 'status' => 'initial_review']);
+check('submission_set_status moves the case to initial_review', ($r['ok'] ?? false));
+[$c, $r] = call('submission_set_status', ['csrf' => $csrf, 'id' => 'not-an-id', 'status' => 'initial_review']);
+check('submission_set_status rejects a malformed case id', !($r['ok'] ?? true));
+
+[$c, $r] = call('submission_set_priority', ['csrf' => $csrf, 'id' => $caseId, 'flag' => '1', 'note' => 'urgent']);
+check('submission_set_priority flags the case', ($r['ok'] ?? false));
+
+[$c, $r] = call('submission_timeline_get', ['id' => $caseId]);
+$st = array_column($r['items'] ?? [], 'status');
+check('timeline records creation and the status change in order', $st === ['submitted', 'initial_review']);
+
+[$c, $r] = call('submission_delete', ['id' => $caseId]);
+check('submission_delete without CSRF is refused (403)', $c === 403);
+[$c, $r] = call('submission_delete', ['csrf' => $csrf, 'id' => $caseId]);
+check('submission_delete removes the case', ($r['ok'] ?? false));
+[$c, $r] = call('submission_search', ['q' => 'Test Benef']);
+check('deleted case no longer appears in search', ($r['items'] ?? null) === []);
+[$c, $r] = call('submission_timeline_get', ['id' => $caseId]);
+check('deleted case has an empty timeline', ($r['items'] ?? null) === []);
+
 // Password change: wrong current password is refused, correct one works.
 [$c, $r] = call('admin_change_password', ['csrf' => $csrf, 'current' => 'not-the-password', 'next' => 'N3w-passw0rd!']);
 check('admin_change_password rejects a wrong current password', !($r['ok'] ?? true));
