@@ -14,6 +14,7 @@
 - Tests: internal account transfers (balances move, income/expense totals unchanged, deleting one leg removes both)
 - Tests: transaction list filters, edit and delete (with CSRF/404 checks), monthly budgets vs. actual spend, audit-log entries and admin database backup
 - Tests: case lifecycle (manual creation, search, status validation, priority flag, timeline, deletion cleanup)
+- Added `tools/demo_seed.php`: local demo instance pre-filled with fake data
 
 ## 0.1.0
 - Initial public release

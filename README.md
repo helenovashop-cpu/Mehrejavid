@@ -47,6 +47,14 @@ php tests/smoke_test.php
 
 Runs `api.php` on a temporary PHP server with a throw-away database and checks CSRF, authorization and login rate-limiting. Requires PHP with `curl` and `pdo_sqlite`.
 
+## Demo with fake data
+
+```
+php tools/demo_seed.php
+```
+
+Starts a throw-away local instance (default http://127.0.0.1:8088/) pre-filled with invented donors, accounts and transactions. Login: `admin` / `demo-Admin-12345`. Nothing is written to your real `data/`.
+
 ## Roadmap
 
 See [ROADMAP.md](ROADMAP.md) and [CHANGELOG.md](CHANGELOG.md).

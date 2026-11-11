@@ -9,5 +9,5 @@
 - [ ] Split frontend/backend into smaller modules
 - [x] English documentation (`docs/en`)
 - [ ] Arabic documentation
-- [ ] Demo instance with fake data
+- [x] Demo instance with fake data (`php tools/demo_seed.php`)
 - [ ] Multi-charity setup guide
