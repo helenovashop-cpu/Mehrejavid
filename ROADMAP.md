@@ -5,7 +5,7 @@
 - [x] Admin panel with roles and audit log
 - [x] SMS/OTP login (Najva)
 - [ ] Online payment gateway rollout (ZarinPal)
-- [x] Automated smoke tests for `api.php` (`tests/smoke_test.php`; covers auth, accounting, donors and the case lifecycle; more coverage welcome)
+- [x] Automated smoke tests for `api.php` (`tests/smoke_test.php`; covers auth, accounting, donors, the case lifecycle, admin accounts and settings; more coverage welcome)
 - [ ] Split frontend/backend into smaller modules
 - [x] English documentation (`docs/en`)
 - [ ] Arabic documentation

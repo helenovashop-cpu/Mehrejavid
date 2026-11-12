@@ -13,6 +13,7 @@
 - Hardening: `donor_create` now validates the phone number format like `donor_update` does
 - Tests: internal account transfers (balances move, income/expense totals unchanged, deleting one leg removes both)
 - Tests: transaction list filters, edit and delete (with CSRF/404 checks), monthly budgets vs. actual spend, audit-log entries and admin database backup
+- Tests: admin account management (create/validate/promote/delete, self-demotion and self-delete guards), settings validation, and reviewer-vs-super_admin permission boundaries
 - Tests: case lifecycle (manual creation, search, status validation, priority flag, timeline, deletion cleanup)
 - Added `tools/demo_seed.php`: local demo instance pre-filled with fake data
 

@@ -273,6 +273,63 @@ check('deleted case no longer appears in search', ($r['items'] ?? null) === []);
 [$c, $r] = call('submission_timeline_get', ['id' => $caseId]);
 check('deleted case has an empty timeline', ($r['items'] ?? null) === []);
 
+// Admin account management (super_admin only) and site settings.
+[$c, $r] = call('admin_list');
+check('admin_list shows the single bootstrap admin', $c === 200 && count($r['items'] ?? []) === 1 && ($r['items'][0]['username'] ?? '') === 'admin');
+[$c, $r] = call('admin_create', ['username' => 'rev1', 'password' => 'Rev-pass-1', 'role' => 'reviewer']);
+check('admin_create without CSRF is refused (403)', $c === 403);
+[$c, $r] = call('admin_create', ['csrf' => $csrf, 'username' => 'a b', 'password' => 'Rev-pass-1', 'role' => 'reviewer']);
+check('admin_create rejects an invalid username', !($r['ok'] ?? true));
+[$c, $r] = call('admin_create', ['csrf' => $csrf, 'username' => 'rev1', 'password' => '123', 'role' => 'reviewer']);
+check('admin_create rejects a too-short password', !($r['ok'] ?? true));
+[$c, $r] = call('admin_create', ['csrf' => $csrf, 'username' => 'rev1', 'password' => 'Rev-pass-1', 'role' => 'godmode']);
+check('admin_create rejects an unknown role', !($r['ok'] ?? true));
+[$c, $r] = call('admin_create', ['csrf' => $csrf, 'username' => 'rev1', 'password' => 'Rev-pass-1', 'role' => 'reviewer']);
+check('admin_create adds a reviewer', ($r['ok'] ?? false));
+[$c, $r] = call('admin_create', ['csrf' => $csrf, 'username' => 'rev1', 'password' => 'Rev-pass-1', 'role' => 'reviewer']);
+check('admin_create refuses a duplicate username', !($r['ok'] ?? true));
+[$c, $r] = call('admin_list');
+check('admin_list now shows two admins', count($r['items'] ?? []) === 2);
+[$c, $r] = call('admin_set_role', ['csrf' => $csrf, 'username' => 'admin', 'role' => 'reviewer']);
+check('admin_set_role blocks self-demotion', !($r['ok'] ?? true));
+[$c, $r] = call('admin_set_role', ['csrf' => $csrf, 'username' => 'ghost', 'role' => 'reviewer']);
+check('admin_set_role rejects an unknown account', !($r['ok'] ?? true));
+[$c, $r] = call('admin_delete', ['csrf' => $csrf, 'username' => 'admin']);
+check('admin_delete blocks deleting your own account', !($r['ok'] ?? true));
+
+[$c, $r] = call('settings_update', ['csrf' => $csrf, 'settings' => json_encode(['stale_case_days' => '0'])]);
+check('settings_update rejects an out-of-range stale_case_days', !($r['ok'] ?? true));
+[$c, $r] = call('settings_update', ['csrf' => $csrf, 'settings' => json_encode(['brand_color' => 'red'])]);
+check('settings_update rejects an invalid brand_color', !($r['ok'] ?? true));
+[$c, $r] = call('settings_update', ['csrf' => $csrf, 'settings' => json_encode(['default_theme' => 'dark', 'stale_case_days' => '14', 'no_such_key' => 'x'])]);
+check('settings_update saves valid values', ($r['ok'] ?? false));
+[$c, $r] = call('settings_get');
+check('settings_get returns the saved values and ignores unknown keys',
+  ($r['settings']['default_theme'] ?? '') === 'dark' && ($r['settings']['stale_case_days'] ?? '') == '14' && !isset($r['settings']['no_such_key']));
+
+// A reviewer can sign in (separate cookie jar) but must not reach super_admin actions.
+$adminCookie = $cookie;
+$cookie = $tmp . '/cookies_reviewer.txt';
+[$c, $r] = call('bootstrap'); $revCsrf = $r['csrf'] ?? '';
+[$c, $r] = call('admin_login', ['csrf' => $revCsrf, 'username' => 'rev1', 'password' => 'Rev-pass-1']);
+check('a newly created reviewer can log in', ($r['ok'] ?? false));
+[$c, $r] = call('admin_list');
+check('reviewer cannot list admins', $c === 403 || $c === 401);
+[$c, $r] = call('admin_create', ['csrf' => $revCsrf, 'username' => 'rev2', 'password' => 'Rev-pass-2', 'role' => 'reviewer']);
+check('reviewer cannot create admins', ($c === 403 || $c === 401) && !($r['ok'] ?? false));
+[$c, $r] = call('settings_update', ['csrf' => $revCsrf, 'settings' => json_encode(['default_theme' => 'light'])]);
+check('reviewer cannot change settings', ($c === 403 || $c === 401) && !($r['ok'] ?? false));
+[$c, $r] = call('settings_get');
+check('reviewer can still read settings', $c === 200 && isset($r['settings']));
+$cookie = $adminCookie;
+
+[$c, $r] = call('admin_set_role', ['csrf' => $csrf, 'username' => 'rev1', 'role' => 'super_admin']);
+check('admin_set_role promotes another account', ($r['ok'] ?? false));
+[$c, $r] = call('admin_delete', ['csrf' => $csrf, 'username' => 'rev1']);
+check('admin_delete removes another account', ($r['ok'] ?? false));
+[$c, $r] = call('admin_list');
+check('only the original admin remains', count($r['items'] ?? []) === 1);
+
 // Password change: wrong current password is refused, correct one works.
 [$c, $r] = call('admin_change_password', ['csrf' => $csrf, 'current' => 'not-the-password', 'next' => 'N3w-passw0rd!']);
 check('admin_change_password rejects a wrong current password', !($r['ok'] ?? true));
