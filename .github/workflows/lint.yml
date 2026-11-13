@@ -16,5 +16,7 @@ jobs:
       - name: Check no secrets committed
         run: |
           ! grep -rEn "(api[_-]?key|secret|password)['\"]?\s*[:=]\s*['\"][A-Za-z0-9]{16,}" --include=*.php --include=*.html . || (echo "Possible secret found" && exit 1)
+      - name: Patient flow tests
+        run: php tests/patient_flow_test.php
       - name: API smoke tests
         run: php tests/smoke_test.php
