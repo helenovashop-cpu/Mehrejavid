@@ -20,3 +20,5 @@ jobs:
         run: php tests/patient_flow_test.php
       - name: API smoke tests
         run: php tests/smoke_test.php
+      - name: Messaging and notification tests
+        run: php tests/messaging_test.php
