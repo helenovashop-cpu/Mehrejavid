@@ -45,6 +45,7 @@ Persian RTL, responsive, with light/dark themes.
 php tests/smoke_test.php
 php tests/patient_flow_test.php
 php tests/messaging_test.php
+php tests/accounting_admin_test.php
 ```
 
 Runs `api.php` on a temporary PHP server with a throw-away database and checks CSRF, authorization and login rate-limiting. Requires PHP with `curl` and `pdo_sqlite`.

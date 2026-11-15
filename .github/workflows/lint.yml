@@ -22,3 +22,5 @@ jobs:
         run: php tests/smoke_test.php
       - name: Messaging and notification tests
         run: php tests/messaging_test.php
+      - name: Accounting maintenance tests
+        run: php tests/accounting_admin_test.php

@@ -16,6 +16,7 @@
 - Tests: admin account management (create/validate/promote/delete, self-demotion and self-delete guards), settings validation, and reviewer-vs-super_admin permission boundaries
 - Tests: case lifecycle (manual creation, search, status validation, priority flag, timeline, deletion cleanup)
 - Tests: per-case message thread and notification feed (patient/admin messaging, guest and cross-patient isolation, mark-as-read) in `tests/messaging_test.php`
+- Tests: editing and deleting accounting categories and bank accounts (CSRF/guest/404 checks, in-use delete guard, audit log) in `tests/accounting_admin_test.php`
 - Added `tools/demo_seed.php`: local demo instance pre-filled with fake data
 
 ## 0.1.0
