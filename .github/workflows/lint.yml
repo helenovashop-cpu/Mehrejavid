@@ -26,3 +26,5 @@ jobs:
         run: php tests/accounting_admin_test.php
       - name: Accommodation room tests
         run: php tests/accommodation_test.php
+      - name: Satisfaction survey tests
+        run: php tests/survey_test.php
