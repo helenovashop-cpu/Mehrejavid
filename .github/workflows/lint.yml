@@ -28,3 +28,5 @@ jobs:
         run: php tests/accommodation_test.php
       - name: Satisfaction survey tests
         run: php tests/survey_test.php
+      - name: Financial assistance and reporting tests
+        run: php tests/financial_test.php
