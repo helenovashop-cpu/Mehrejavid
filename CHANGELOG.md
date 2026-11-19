@@ -9,6 +9,7 @@
 - Added automated API smoke tests (`php tests/smoke_test.php`) covering CSRF, role checks, admin login and login rate-limiting; run in CI
 - Fixed: `accounting_category_create`, `accounting_bank_account_create` and `donor_create` returned the audit-log row id instead of the new record's id
 - Tests: accounting flow (categories, accounts, transactions, summary/balances) and admin password change
+- Tests: document review statuses (admin-only, notification on correction, access control) and the admin donor list
 - Tests: donor create/update/detail/merge (donations move to the kept donor)
 - Hardening: `donor_create` now validates the phone number format like `donor_update` does
 - Tests: internal account transfers (balances move, income/expense totals unchanged, deleting one leg removes both)
