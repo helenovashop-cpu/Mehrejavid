@@ -34,3 +34,5 @@ jobs:
         run: php tests/document_review_test.php
       - name: Receipt and backup tests
         run: php tests/receipt_backup_test.php
+      - name: Admin two-factor (TOTP) tests
+        run: php tests/two_factor_test.php

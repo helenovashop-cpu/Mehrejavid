@@ -19,6 +19,7 @@
 - Tests: per-case message thread and notification feed (patient/admin messaging, guest and cross-patient isolation, mark-as-read) in `tests/messaging_test.php`
 - Tests: editing and deleting accounting categories and bank accounts (CSRF/guest/404 checks, in-use delete guard, audit log) in `tests/accounting_admin_test.php`
 - Tests: accommodation rooms (admin-only access, assign/checkout validation, one active guest per room, patient notification) in `tests/accommodation_test.php`
+- Tests: admin two-factor authentication (setup, two-step login, wrong/malformed codes, clock-drift window, disable with password, audit log, TOTP rate limit) in `tests/two_factor_test.php`, using an independent RFC 6238 generator
 - Added `tools/demo_seed.php`: local demo instance pre-filled with fake data
 
 ## 0.1.0
