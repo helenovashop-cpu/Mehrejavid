@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Tests: patient registration and SMS OTP verification, patient financial requests and admin profile edits (`tests/registration_test.php`); run in CI
 - Secrets moved to `config.php` (git-ignored); random initial admin password
 - Added MIT license, contributing guide, security policy
 - Added CI lint workflow and issue/PR templates
