@@ -38,3 +38,5 @@ jobs:
         run: php tests/two_factor_test.php
       - name: Registration and OTP tests
         run: php tests/registration_test.php
+      - name: Online donation tests
+        run: php tests/donation_test.php

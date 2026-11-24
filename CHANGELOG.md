@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Tests: online donation endpoints (amount/phone validation, public stats, gateway-callback failure and replay paths) in `tests/donation_test.php`; run in CI
 - Tests: patient registration and SMS OTP verification, patient financial requests and admin profile edits (`tests/registration_test.php`); run in CI
 - Secrets moved to `config.php` (git-ignored); random initial admin password
 - Added MIT license, contributing guide, security policy
