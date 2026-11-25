@@ -10,4 +10,4 @@
 - [x] English documentation (`docs/en`)
 - [ ] Arabic documentation
 - [x] Demo instance with fake data (`php tools/demo_seed.php`)
-- [ ] Multi-charity setup guide
+- [x] Multi-charity setup guide (`docs/en/multi-charity-setup.md`; making name/logo/accounts/SMS templates configurable without code edits is still open)

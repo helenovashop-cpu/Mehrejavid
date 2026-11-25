@@ -78,4 +78,4 @@ This repository contains no real beneficiary or donor data. Keep it that way: ne
 
 ## Contributing
 
-See [CONTRIBUTING.md](../../CONTRIBUTING.md). Helpful next steps: automated tests for `api.php`, splitting the frontend into modules, Arabic documentation.
+See [CONTRIBUTING.md](../../CONTRIBUTING.md). Setting up for another charity: [multi-charity-setup.md](multi-charity-setup.md). Helpful next steps: automated tests for `api.php`, splitting the frontend into modules, Arabic documentation.
