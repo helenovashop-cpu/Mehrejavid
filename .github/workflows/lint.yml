@@ -40,3 +40,5 @@ jobs:
         run: php tests/registration_test.php
       - name: Online donation tests
         run: php tests/donation_test.php
+      - name: Rate-limit and security header tests
+        run: php tests/rate_limit_test.php
